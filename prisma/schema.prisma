@@ -1,0 +1,133 @@
+generator client {
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
+  previewFeatures = ["partialIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id             String    @id
+  name           String
+  email          String    @unique
+  emailVerified  Boolean   @default(false)
+  image          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  aprovado       Boolean   @default(false)
+  sessions       Session[]
+  accounts       Account[]
+  visitasEntrada Visita[]  @relation("OperadorEntrada")
+  visitasSaida   Visita[]  @relation("OperadorSaida")
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  idToken               String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model Unidade {
+  id       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nome     String   @unique
+  fuso     String
+  criadoEm DateTime @default(now()) @map("criado_em") @db.Timestamptz(3)
+  tarifas  Tarifa[]
+  visitas  Visita[]
+
+  @@map("unidades")
+}
+
+model Tarifa {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  unidadeId         String   @map("unidade_id") @db.Uuid
+  modo              String
+  precoCentavos     Int      @map("preco_centavos")
+  blocoMinutos      Int?     @map("bloco_minutos")
+  toleranciaMinutos Int      @default(0) @map("tolerancia_minutos")
+  toleranciaModo    String   @default("cobra_total") @map("tolerancia_modo")
+  vigenteDesde      DateTime @default(now()) @map("vigente_desde") @db.Timestamptz(3)
+  criadoEm          DateTime @default(now()) @map("criado_em") @db.Timestamptz(3)
+  unidade           Unidade  @relation(fields: [unidadeId], references: [id], onDelete: Restrict)
+  visitas           Visita[]
+
+  @@unique([unidadeId, vigenteDesde])
+  @@unique([unidadeId, id])
+  @@map("tarifas")
+}
+
+model Visita {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  unidadeId         String    @map("unidade_id") @db.Uuid
+  tarifaId          String    @map("tarifa_id") @db.Uuid
+  placa             String    @db.VarChar(7)
+  placaSugeridaIa   String?   @map("placa_sugerida_ia") @db.VarChar(7)
+  confiancaIa       String?   @map("confianca_ia")
+  foto              Bytes?
+  fotoMime          String?   @map("foto_mime")
+  observacao        String?
+  operadorEntradaId String    @map("operador_entrada_id")
+  operadorSaidaId   String?   @map("operador_saida_id")
+  entradaEm         DateTime  @default(now()) @map("entrada_em") @db.Timestamptz(3)
+  saidaEm           DateTime? @map("saida_em") @db.Timestamptz(3)
+  duracaoSeg        Decimal?  @map("duracao_seg") @db.Decimal(15, 3)
+  cobravelSeg       Decimal?  @map("cobravel_seg") @db.Decimal(15, 3)
+  blocos            Int?
+  valorCentavos     Int?      @map("valor_centavos")
+  status            String    @default("aberta")
+  criadoEm          DateTime  @default(now()) @map("criado_em") @db.Timestamptz(3)
+  unidade           Unidade   @relation(fields: [unidadeId], references: [id], onDelete: Restrict)
+  tarifa            Tarifa    @relation(fields: [unidadeId, tarifaId], references: [unidadeId, id], onDelete: Restrict, map: "visitas_tarifa_da_unidade_fkey")
+  operadorEntrada   User      @relation("OperadorEntrada", fields: [operadorEntradaId], references: [id], onDelete: Restrict)
+  operadorSaida     User?     @relation("OperadorSaida", fields: [operadorSaidaId], references: [id], onDelete: Restrict)
+
+  @@unique([unidadeId, placa], map: "visitas_placa_aberta_unidade_key", where: { status: "aberta" })
+  @@index([unidadeId, placa, entradaEm])
+  @@map("visitas")
+}
