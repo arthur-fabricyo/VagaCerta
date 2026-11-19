@@ -16,7 +16,7 @@
 - [x] Montar o Better Auth em `app/api/auth/[...all]/route.ts` e declarar o campo `aprovado` como controlado pelo servidor. Implementar `consultarAcesso(headers)` e `exigirOperador()` em `lib/acesso.ts`. Ler o estado atual da sessão a cada verificação protegida.
 - [x] Criar `/entrar`, `/cadastro`, `/aguardando-aprovacao`, proteger a página inicial e criar `/usuarios`. Expor `GET /api/usuarios` e `PATCH /api/usuarios/[id]` com validação de decisão e origem. Condicionar mudanças ao cadastro continuar pendente.
 - [x] Criar `prisma/seed.mjs` e o comando `pnpm db:seed`. Gravar a conta e a credencial do Better Auth de forma atômica, preservar operador aprovado existente e falhar se o e-mail já pertence a uma conta pendente.
-- [ ] Aplicar a migração em um PostgreSQL descartável, executar o seed e iniciar o build de produção. Rodar a suíte HTTP, a suíte unitária, a checagem de tipos e o build.
+- [x] Aplicar a migração em um PostgreSQL descartável, executar o seed e iniciar o build de produção. Rodar a suíte HTTP, a suíte unitária, a checagem de tipos e o build.
 
 ## Casos de revisão
 
