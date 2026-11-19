@@ -2,6 +2,16 @@
 
 Sistema web de operação de estacionamento para o Projeto Integrador de Desenvolvimento Web, IA e Banco de Dados.
 
+## Arquitetura
+
+O padrão adotado para código novo e refatorações do backend é MVC com três camadas. O fluxo de dependências é `Controller → Service → Repository`.
+
+- **Controller** recebe a requisição pelos Route Handlers do Next.js, valida os dados de entrada, chama o serviço e monta a resposta HTTP.
+- **Service** implementa os casos de uso e as regras de negócio e coordena o acesso aos repositórios.
+- **Repository** concentra a persistência e as consultas ao PostgreSQL, incluindo o acesso via Prisma e SQL.
+
+Escreva o código e os identificadores técnicos em inglês, incluindo entidades, campos do banco, rotas do backend, nomes de classes e métodos, testes e comentários de código. Na criação de classes, aplique Clean Code, SOLID e orientação a objetos, com responsabilidades claras, encapsulamento e dependências explícitas. [Convenções para agentes e colaboradores](AGENTS.md)
+
 ## Desenvolvimento local
 
 Requer pnpm 10.34.9 e Node.js 22 a partir da versão 22.12, ou Node.js 24 em diante.
