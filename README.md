@@ -12,6 +12,13 @@ O padrão adotado para código novo e refatorações do backend é MVC com três
 
 Escreva o código e os identificadores técnicos em inglês, incluindo entidades, campos do banco, rotas do backend, nomes de classes e métodos, testes e comentários de código. Na criação de classes, aplique Clean Code, SOLID e orientação a objetos, com responsabilidades claras, encapsulamento e dependências explícitas. [Convenções para agentes e colaboradores](AGENTS.md)
 
+## Branches e deploy
+
+- `origin/develop` é a branch de integração. Crie branches de trabalho a partir de `develop` e abra os PRs de funcionalidades, correções e documentação com destino a `develop`.
+- `origin/prod` é a branch reservada para produção. Para publicar uma versão validada, abra um PR de `develop` para `prod` e faça o merge após a revisão.
+
+No GitHub, um administrador deve definir `develop` como branch padrão do repositório. No projeto Vercel conectado ao repositório, selecione `prod` em **Settings → Environments → Production → Branch Tracking**. Com essa configuração ativa, o merge em `prod` dispara o deploy de produção. Consulte a [documentação do Vercel](https://vercel.com/docs/git#customizing-the-production-branch).
+
 ## Desenvolvimento local
 
 Requer pnpm 10.34.9 e Node.js 22 a partir da versão 22.12, ou Node.js 24 em diante.
