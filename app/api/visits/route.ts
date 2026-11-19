@@ -30,7 +30,7 @@ export function GET(request: Request) {
 
 export function POST(request: Request) {
   return withOperator(request, async (operatorId) => {
-    const input = await readInput(request, visitInputSchema, "Confira a unidade, a placa e os dados da entrada.");
+    const input = await readInput(request, visitInputSchema, "Confira a unidade, a placa e os dados da reserva.");
     const photo = await readPhoto(input.photo);
     const result = await getOperations().registerEntry(input, operatorId, photo);
     return Response.json(result, { status: result.duplicate ? 200 : 201 });

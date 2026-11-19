@@ -2,7 +2,7 @@
 
 Sistema web de operação de estacionamento para o Projeto Integrador de Desenvolvimento Web, IA e Banco de Dados.
 
-Operadores aprovados registram entradas, localizam veículos no pátio, encerram visitas com cobrança simulada e consultam o histórico por placa. A leitura por foto usa Grok para sugerir uma placa que o operador pode corrigir antes de confirmar a entrada.
+Operadores aprovados registram reservas, localizam veículos no pátio, encerram visitas com cobrança simulada e consultam o histórico por placa. A leitura por foto usa Grok para sugerir uma placa que o operador pode corrigir antes de confirmar a reserva.
 
 ## Arquitetura
 
@@ -31,13 +31,15 @@ pnpm install --frozen-lockfile
 
 ## Banco de dados e primeiro acesso
 
+Para iniciar um PostgreSQL 18 com `pgvector` em Docker, rode `docker compose up -d --wait`. O banco local fica em `127.0.0.1:55440`, com dados em um volume persistente. A extensão `vector` é ativada na criação do volume. Para usar essa base na aplicação, configure `DATABASE_URL` em `.env.local` como `postgresql://vagacerta:vagacerta-local@127.0.0.1:55440/vagacerta?schema=public` e execute as migrações e o seed abaixo. A porta e a senha de inicialização podem ser definidas no ambiente do Compose com `VAGACERTA_DB_PORT` e `VAGACERTA_DB_PASSWORD`.
+
 Copie `.env.example` para `.env.local` e preencha as variáveis abaixo.
 
 - `DATABASE_URL` com a conexão do PostgreSQL de desenvolvimento.
 - `BETTER_AUTH_URL` com a origem da aplicação, por exemplo `http://localhost:3000`.
 - `BETTER_AUTH_SECRET` com um segredo aleatório. Gere um com `node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))"`.
 - `SEED_ADMIN_EMAIL` e `SEED_ADMIN_PASSWORD` com as credenciais do primeiro operador.
-- `XAI_API_KEY` e `AI_MODEL` para sugerir placas a partir de fotos. Configure um modelo Grok com visão. A entrada manual está disponível mesmo quando a leitura por foto falha.
+- `XAI_API_KEY` e `AI_MODEL` para sugerir placas a partir de fotos. Configure um modelo Grok com visão. A reserva manual está disponível mesmo quando a leitura por foto falha.
 
 ```bash
 pnpm db:migrate
@@ -47,7 +49,7 @@ pnpm dev
 
 Abra a origem configurada e entre com a conta do seed. Em **Usuários**, um operador aprovado pode aprovar ou recusar os cadastros feitos pela tela **Criar conta**.
 
-Na operação, cadastre uma unidade com seu fuso horário e publique uma tarifa. Confirme uma entrada com placa digitada ou conferida a partir de uma foto. Abra a visita pelo pátio para registrar a saída ou cancelar. Consulte **Histórico** para ver chegadas de uma placa na unidade e no período escolhidos.
+Na operação, cadastre uma unidade com seu fuso horário e publique uma tarifa. Confirme uma reserva com placa digitada ou conferida a partir de uma foto. Abra a visita pelo pátio para registrar a saída ou cancelar. Consulte **Histórico** para ver chegadas de uma placa na unidade e no período escolhidos.
 
 Para preparar uma base de demonstração, aplique as migrações, crie o primeiro operador e execute `psql` com `sql/seed.sql`. O arquivo `sql/schema.sql` reproduz o esquema num banco vazio via `psql` como alternativa para a demonstração SQL isolada. O deploy usa as migrações do Prisma.
 

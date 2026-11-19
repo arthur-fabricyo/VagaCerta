@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { test } from "node:test";
 import { config } from "dotenv";
+import pg from "pg";
 
 config({ path: [".env.local", ".env"], quiet: true });
 const { BETTER_AUTH_URL, SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD } = process.env;
@@ -31,6 +32,91 @@ function sessionCookie(response) {
   assert.ok(cookies.length > 0);
   return cookies.map((cookie) => cookie.split(";", 1)[0]).join("; ");
 }
+
+test("dashboard counts visits by unit and by the unit's local day", async () => {
+  const unitId = randomUUID();
+  const emptyUnitId = randomUUID();
+  const tariffId = randomUUID();
+  const dashboardPath = (id) => `/api/dashboard?unitId=${id}`;
+  await request(dashboardPath(unitId), { status: 401 });
+  const operator = await request("/api/auth/sign-in/email", {
+    method: "POST", status: 200, body: { email: SEED_ADMIN_EMAIL, password: SEED_ADMIN_PASSWORD },
+  });
+  const cookie = sessionCookie(operator);
+  await request(dashboardPath("invalid"), { cookie, status: 400 });
+  await request(`${dashboardPath(unitId)}&unitId=${unitId}`, { cookie, status: 400 });
+  await request(dashboardPath(unitId), { cookie, status: 404 });
+
+  const database = new pg.Client({ connectionString: process.env.DATABASE_URL });
+  await database.connect();
+  try {
+    await database.query(`
+      INSERT INTO unidades (id, nome, fuso)
+      VALUES ($1::uuid, $1::uuid::text, 'Pacific/Kiritimati'), ($2::uuid, $2::uuid::text, 'Pacific/Honolulu')
+    `, [unitId, emptyUnitId]);
+    await database.query(`
+      INSERT INTO tarifas (id, unidade_id, modo, preco_centavos)
+      VALUES ($1, $2, 'proporcional', 800)
+    `, [tariffId, unitId]);
+    const { rows: [day] } = await database.query(`
+      SELECT (now() AT TIME ZONE fuso)::date::text AS today,
+        ((now() AT TIME ZONE fuso)::date - 1)::text AS yesterday
+      FROM unidades WHERE id = $1
+    `, [unitId]);
+    await database.query(`
+      WITH fixture (plate, status, entry_offset, exit_offset) AS (
+        VALUES
+          ('KPI1A01', 'aberta', interval '0 hours', NULL),
+          ('KPI1A02', 'aberta', interval '-1 hour', NULL),
+          ('KPI1A03', 'encerrada', interval '3 hours', interval '4 hours'),
+          ('KPI1A04', 'encerrada', interval '-1 hour', interval '1 hour'),
+          ('KPI1A05', 'cancelada', interval '2 hours', NULL),
+          ('KPI1A06', 'encerrada', interval '23 hours', interval '24 hours'),
+          ('KPI1A07', 'encerrada', interval '24 hours', interval '25 hours')
+      ), unit_day AS (
+        SELECT id, $3::date::timestamp AT TIME ZONE fuso AS midnight FROM unidades WHERE id = $1
+      )
+      INSERT INTO visitas (unidade_id, tarifa_id, placa, status, entrada_em, saida_em,
+        operador_entrada_id, operador_saida_id, duracao_seg, cobravel_seg, valor_centavos)
+      SELECT u.id, $2, f.plate, f.status, u.midnight + f.entry_offset,
+        u.midnight + f.exit_offset, o.id, CASE WHEN f.exit_offset IS NOT NULL THEN o.id END,
+        EXTRACT(EPOCH FROM f.exit_offset - f.entry_offset),
+        EXTRACT(EPOCH FROM f.exit_offset - f.entry_offset),
+        CASE WHEN f.exit_offset IS NOT NULL THEN 800 END
+      FROM fixture f CROSS JOIN unit_day u CROSS JOIN "user" o
+      WHERE o.email = $4
+    `, [unitId, tariffId, day.today, SEED_ADMIN_EMAIL.trim().toLowerCase()]);
+
+    const summary = await (await request(dashboardPath(unitId), { cookie, status: 200 })).json();
+    assert.equal(summary.localDate, day.today);
+    assert.equal(summary.vehiclesOnSite, 2);
+    assert.equal(summary.entriesToday, 3);
+    assert.equal(summary.exitsToday, 2);
+    assert.equal(summary.hourly.length, 24);
+    assert.deepEqual(summary.hourly.filter(({ entries, exits }) => entries || exits), [
+      { hour: 0, entries: 1, exits: 0 },
+      { hour: 1, entries: 0, exits: 1 },
+      { hour: 3, entries: 1, exits: 0 },
+      { hour: 4, entries: 0, exits: 1 },
+      { hour: 23, entries: 1, exits: 0 },
+    ]);
+    const empty = await (await request(dashboardPath(emptyUnitId), { cookie, status: 200 })).json();
+    assert.equal(empty.localDate, day.yesterday);
+    assert.equal(empty.vehiclesOnSite, 0);
+    assert.equal(empty.entriesToday, 0);
+    assert.equal(empty.exitsToday, 0);
+    assert.equal(empty.hourly.length, 24);
+    assert.ok(empty.hourly.every(({ entries, exits }) => entries === 0 && exits === 0));
+  } finally {
+    try {
+      await database.query("DELETE FROM visitas WHERE unidade_id = $1", [unitId]);
+      await database.query("DELETE FROM tarifas WHERE id = $1", [tariffId]);
+      await database.query("DELETE FROM unidades WHERE id IN ($1, $2)", [unitId, emptyUnitId]);
+    } finally {
+      await database.end();
+    }
+  }
+});
 
 test("manual visit workflow preserves rates and handles concurrent entry and exit", async () => {
   await request("/api/units", { status: 401 });

@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { exigirOperador } from "../../../lib/acesso";
-import { Sair } from "../../_components/sair";
+import { exigirOperador } from "@/lib/acesso";
 import { VisitDetail } from "./visit-detail";
 
 export default async function VisitPage({ params }: { params: Promise<{ id: string }> }) {
@@ -14,7 +13,6 @@ export default async function VisitPage({ params }: { params: Promise<{ id: stri
           <Link className="link" href="/">VagaCerta</Link>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Detalhe da visita</h1>
         </div>
-        <Sair />
       </header>
       <VisitDetail id={id} />
     </main>

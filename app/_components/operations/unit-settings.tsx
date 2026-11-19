@@ -56,16 +56,16 @@ export function UnitSettings({ unit, onUnitChange }: SettingsProps) {
 
   return (
     <div className="space-y-5" aria-busy={saving !== null}>
-      {error && <p role="alert" className="painel text-rose-300">{error}</p>}
+      {error && <p role="alert" className="painel text-rose-700">{error}</p>}
       {unit && (
         <section className="painel space-y-4" aria-labelledby="rate-heading">
           <h2 id="rate-heading" className="break-words text-xl font-semibold">Tarifa de {unit.name}</h2>
           {rate ? (
-            <p className="text-slate-300">
+            <p className="text-slate-600">
               Vigente desde {formatTimestamp(rate.effectiveAt, unit.timeZone)}. {formatPrice(rate.priceCents)}
               {rate.mode === "blocks" ? ` por bloco de ${rate.blockMinutes} min.` : " por hora."}
             </p>
-          ) : <p className="text-slate-300">Cadastre a primeira tarifa para liberar as entradas nesta unidade.</p>}
+          ) : <p className="text-slate-600">Cadastre a primeira tarifa para liberar as reservas nesta unidade.</p>}
           <form className="space-y-4" onSubmit={publishRate}>
             <fieldset disabled={saving !== null} className="grid gap-4 sm:grid-cols-2">
               <label className="campo">

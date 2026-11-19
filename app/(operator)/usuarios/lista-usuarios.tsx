@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import type { UsuarioResumo } from "../../lib/usuarios";
+import type { UsuarioResumo } from "@/lib/usuarios";
 
 type Acao = "aprovar" | "recusar";
 
@@ -44,21 +44,21 @@ export function ListaUsuarios({ pendentes, aprovados }: { pendentes: UsuarioResu
 
   return (
     <div className="mt-7 space-y-5" aria-busy={alterando}>
-      {erro && <p role="alert" className="text-sm text-rose-300">{erro}</p>}
-      <p role="status" className="text-sm text-emerald-200 empty:hidden">{mensagem}</p>
+      {erro && <p role="alert" className="text-sm text-rose-700">{erro}</p>}
+      <p role="status" className="text-sm text-emerald-800 empty:hidden">{mensagem}</p>
       <section className="painel" aria-labelledby="pendentes">
         <h2 id="pendentes" className="text-xl font-semibold">Cadastros pendentes</h2>
         {pendentes.length === 0 ? (
-          <p className="mt-3 text-slate-300">Nenhum cadastro aguardando aprovação.</p>
+          <p className="mt-3 text-slate-600">Nenhum cadastro aguardando aprovação.</p>
         ) : (
           <>
-            <p className="mt-2 text-sm text-slate-300">Recusar remove o cadastro pendente.</p>
-            <ul className="mt-3 divide-y divide-slate-700">
+            <p className="mt-2 text-sm text-slate-600">Recusar remove o cadastro pendente.</p>
+            <ul className="mt-3 divide-y divide-slate-200">
               {pendentes.map((usuario) => (
                 <li key={usuario.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
                   <div className="min-w-0 break-words">
                     <p className="font-medium">{usuario.name}</p>
-                    <p className="text-sm text-slate-300">{usuario.email}</p>
+                    <p className="text-sm text-slate-600">{usuario.email}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <button className="botao botao-primario" type="button" disabled={alterando}
@@ -74,11 +74,11 @@ export function ListaUsuarios({ pendentes, aprovados }: { pendentes: UsuarioResu
       </section>
       <section className="painel" aria-labelledby="aprovados">
         <h2 id="aprovados" className="text-xl font-semibold">Operadores aprovados</h2>
-        <ul className="mt-3 divide-y divide-slate-700">
+        <ul className="mt-3 divide-y divide-slate-200">
           {aprovados.map((usuario) => (
             <li key={usuario.id} className="break-words py-3">
               <p className="font-medium">{usuario.name}</p>
-              <p className="text-sm text-slate-300">{usuario.email}</p>
+              <p className="text-sm text-slate-600">{usuario.email}</p>
             </li>
           ))}
         </ul>

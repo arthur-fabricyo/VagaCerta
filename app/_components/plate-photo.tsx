@@ -35,7 +35,7 @@ async function compressPhoto(input: File) {
       context.drawImage(image, 0, 0, canvas.width, canvas.height);
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
       if (blob && blob.type === "image/jpeg" && blob.size <= MAX_PHOTO_BYTES) {
-        return new File([blob], "entrada.jpg", { type: "image/jpeg" });
+        return new File([blob], "reservation.jpg", { type: "image/jpeg" });
       }
     }
     throw new Error(invalidPhotoMessage);
@@ -136,15 +136,15 @@ export function PlatePhoto({ onChange, onSuggestion, disabled }: PlatePhotoProps
 
   const { suggestedPlate } = value;
   return (
-    <fieldset className="space-y-3 rounded-lg border border-slate-700 p-4" disabled={disabled}>
-      <legend className="px-1 text-sm font-medium">Foto da entrada (opcional)</legend>
-      <p className="text-sm text-slate-300">O Grok pode errar. Confira a placa antes de registrar.</p>
+    <fieldset className="space-y-3 rounded-lg border border-slate-200 p-4" disabled={disabled}>
+      <legend className="px-1 text-sm font-medium">Foto da reserva (opcional)</legend>
+      <p className="text-sm text-slate-600">O Grok pode errar. Confira a placa antes de registrar.</p>
       <div className="flex flex-wrap gap-2">
-        <label className="botao cursor-pointer focus-within:ring-2 focus-within:ring-emerald-300">
+        <label className="botao cursor-pointer focus-within:ring-2 focus-within:ring-emerald-600">
           Tirar foto
           <input className="sr-only" type="file" accept="image/jpeg,image/png" capture="environment" onChange={selectPhoto} />
         </label>
-        <label className="botao cursor-pointer focus-within:ring-2 focus-within:ring-emerald-300">
+        <label className="botao cursor-pointer focus-within:ring-2 focus-within:ring-emerald-600">
           Enviar imagem
           <input className="sr-only" type="file" accept="image/jpeg,image/png" onChange={selectPhoto} />
         </label>
@@ -152,7 +152,7 @@ export function PlatePhoto({ onChange, onSuggestion, disabled }: PlatePhotoProps
       {value.photo && preview && (
         // The preview URL points to a local file that has not been uploaded yet.
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={preview} alt="Prévia da foto da entrada" className="max-h-56 max-w-full rounded-lg object-contain" />
+        <img src={preview} alt="Prévia da foto da reserva" className="max-h-56 max-w-full rounded-lg object-contain" />
       )}
       {value.photo && (
         <div className="flex flex-wrap gap-2">
@@ -160,7 +160,7 @@ export function PlatePhoto({ onChange, onSuggestion, disabled }: PlatePhotoProps
           <button className="botao" type="button" onClick={clearPhoto}>Remover foto</button>
         </div>
       )}
-      <p aria-live="polite" className={busy || notice ? "text-sm text-slate-200" : "sr-only"}>
+      <p aria-live="polite" className={busy || notice ? "text-sm text-slate-700" : "sr-only"}>
         {busy === "prepare" ? "Preparando foto…" : busy === "read" ? "Lendo placa com Grok…" : notice}
       </p>
       {suggestedPlate && (
@@ -168,7 +168,7 @@ export function PlatePhoto({ onChange, onSuggestion, disabled }: PlatePhotoProps
           Usar placa sugerida
         </button>
       )}
-      {error && <p role="alert" className="text-sm text-rose-300">{error}</p>}
+      {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
     </fieldset>
   );
 }

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { formatDuration, formatPrice, formatTimestamp, messageFor, request, send, type Visit }
-  from "../../_components/operations/api";
+  from "@/app/_components/operations/api";
 
 type Action = "exit" | "cancel";
 
@@ -64,34 +64,34 @@ export function VisitDetail({ id }: { id: string }) {
       {loading && <p role="status">Carregando visita…</p>}
       {error && (
         <div className="painel space-y-3">
-          <p role="alert" className="text-rose-300">{error}</p>
+          <p role="alert" className="text-rose-700">{error}</p>
           <button className="botao" type="button" disabled={loading || saving} onClick={reload}>Recarregar visita</button>
         </div>
       )}
-      <p role="status" className="text-emerald-200 empty:hidden">{success}</p>
+      <p role="status" className="text-emerald-800 empty:hidden">{success}</p>
       {visit && (
         <>
           <section className="painel space-y-4" aria-labelledby="visit-heading">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 id="visit-heading" className="text-2xl font-semibold">{visit.plate}</h2>
-              <p className="rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium">{visitStatus[visit.status]}</p>
+              <p className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium">{visitStatus[visit.status]}</p>
             </div>
             <dl className="grid gap-4 sm:grid-cols-2">
               <div>
-                <dt className="text-sm text-slate-300">Unidade</dt>
+                <dt className="text-sm text-slate-600">Unidade</dt>
                 <dd>{visit.unit.name}</dd>
               </div>
               <div>
-                <dt className="text-sm text-slate-300">Entrada</dt>
+                <dt className="text-sm text-slate-600">Reserva</dt>
                 <dd>{formatTimestamp(visit.enteredAt, visit.unit.timeZone)} · {visit.entryOperator.name}</dd>
               </div>
               <div>
-                <dt className="text-sm text-slate-300">Tarifa fixada na entrada</dt>
+                <dt className="text-sm text-slate-600">Tarifa fixada na reserva</dt>
                 <dd>
                   {formatPrice(visit.rate.priceCents)}
                   {visit.rate.mode === "blocks" ? ` por bloco de ${visit.rate.blockMinutes} min` : " por hora"}
                 </dd>
-                <dd className="text-sm text-slate-300">
+                <dd className="text-sm text-slate-600">
                   {visit.rate.graceMinutes === 0
                     ? "Sem tolerância"
                     : `Tolerância de ${visit.rate.graceMinutes} min. Acima do limite, ${visit.rate.graceMode === "deduct"
@@ -101,7 +101,7 @@ export function VisitDetail({ id }: { id: string }) {
               </div>
               {visit.exitedAt && (
                 <div>
-                  <dt className="text-sm text-slate-300">Saída</dt>
+                  <dt className="text-sm text-slate-600">Saída</dt>
                   <dd>
                     {formatTimestamp(visit.exitedAt, visit.unit.timeZone)}
                     {visit.exitOperator && ` · ${visit.exitOperator.name}`}
@@ -110,37 +110,37 @@ export function VisitDetail({ id }: { id: string }) {
               )}
               {visit.note && (
                 <div className="sm:col-span-2">
-                  <dt className="text-sm text-slate-300">Observação</dt>
+                  <dt className="text-sm text-slate-600">Observação</dt>
                   <dd className="whitespace-pre-wrap break-words">{visit.note}</dd>
                 </div>
               )}
             </dl>
             {visit.hasPhoto
-              ? <Image src={`${path}/photo`} alt={`Foto de entrada de ${visit.plate}`}
+              ? <Image src={`${path}/photo`} alt={`Foto de reserva de ${visit.plate}`}
                 width={360} height={240} className="h-auto max-h-60 w-auto max-w-full rounded-lg object-contain" unoptimized />
-              : <p className="text-sm text-slate-300">Visita sem foto.</p>}
+              : <p className="text-sm text-slate-600">Visita sem foto.</p>}
           </section>
           {visit.status === "closed" && visit.totalCents !== null && (
             <section className="painel space-y-3" aria-labelledby="charge-heading">
               <h2 id="charge-heading" className="text-xl font-semibold">Cobrança</h2>
               <dl className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <dt className="text-sm text-slate-300">Duração real</dt>
+                  <dt className="text-sm text-slate-600">Duração real</dt>
                   <dd>{formatDuration(visit.durationSeconds ?? 0)}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm text-slate-300">Tempo cobrável</dt>
+                  <dt className="text-sm text-slate-600">Tempo cobrável</dt>
                   <dd>{formatDuration(visit.billableSeconds ?? 0)}</dd>
                 </div>
                 {visit.blocks !== null && (
                   <div>
-                    <dt className="text-sm text-slate-300">Blocos cobrados</dt>
+                    <dt className="text-sm text-slate-600">Blocos cobrados</dt>
                     <dd>{visit.blocks}</dd>
                   </div>
                 )}
                 <div>
-                  <dt className="text-sm text-slate-300">Total (quitação simulada)</dt>
-                  <dd className="text-xl font-semibold text-emerald-200">{formatPrice(visit.totalCents)}</dd>
+                  <dt className="text-sm text-slate-600">Total (quitação simulada)</dt>
+                  <dd className="text-xl font-semibold text-emerald-800">{formatPrice(visit.totalCents)}</dd>
                 </div>
               </dl>
             </section>

@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { exigirOperador } from "../../lib/acesso";
-import { listarUsuarios } from "../../lib/usuarios";
-import { Sair } from "../_components/sair";
+import { exigirOperador } from "@/lib/acesso";
+import { listarUsuarios } from "@/lib/usuarios";
 import { ListaUsuarios } from "./lista-usuarios";
 
 export default async function Usuarios() {
@@ -15,7 +14,6 @@ export default async function Usuarios() {
           <Link className="link" href="/">VagaCerta</Link>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight">Usuários</h1>
         </div>
-        <Sair />
       </header>
       <ListaUsuarios {...usuarios} />
     </main>

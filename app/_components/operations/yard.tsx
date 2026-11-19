@@ -80,26 +80,26 @@ export function Yard({ unit }: { unit: Unit }) {
           Atualizar
         </button>
       </form>
-      {searchError && <p role="alert" className="text-rose-300">{searchError}</p>}
-      {error && <p role="alert" className="text-rose-300">{error}</p>}
-      {loading && <p role="status" className="text-slate-300">Carregando visitas…</p>}
+      {searchError && <p role="alert" className="text-rose-700">{searchError}</p>}
+      {error && <p role="alert" className="text-rose-700">{error}</p>}
+      {loading && <p role="status" className="text-slate-600">Carregando visitas…</p>}
       {!loading && !error && visits.length === 0 && (
-        <p role="status" className="text-slate-300">
+        <p role="status" className="text-slate-600">
           {search.plate ? `Nenhuma visita em aberto para ${search.plate}.` : "Nenhuma visita em aberto nesta unidade."}
         </p>
       )}
       {!loading && !error && visits.length > 0 && (
-        <ul className="divide-y divide-slate-700">
+        <ul className="divide-y divide-slate-200">
           {visits.map((visit) => (
             <li key={visit.id} className="flex flex-wrap items-center gap-4 py-4">
               {visit.hasPhoto && (
-                <Image src={`/api/visits/${visit.id}/photo`} alt={`Foto de entrada de ${visit.plate}`}
+                <Image src={`/api/visits/${visit.id}/photo`} alt={`Foto de reserva de ${visit.plate}`}
                   width={80} height={56} unoptimized className="h-14 w-20 rounded-md object-cover" />
               )}
               <div className="grow space-y-1">
                 <p className="font-semibold">{visit.plate}</p>
-                <p className="text-sm text-slate-300">
-                  Entrada em {formatTimestamp(visit.enteredAt, unit.timeZone)}
+                <p className="text-sm text-slate-600">
+                  Reserva em {formatTimestamp(visit.enteredAt, unit.timeZone)}
                   {" · "}{formatDuration((now - Date.parse(visit.enteredAt)) / 1000)} no pátio
                   {!visit.hasPhoto && " · Sem foto"}
                 </p>

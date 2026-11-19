@@ -100,7 +100,7 @@ export class OperationsService {
     const result = await this.repository.registerEntry(input, operatorId, photo);
     if (result.kind === "missingUnit") throw new OperationError("missing", "Unidade não encontrada.");
     if (result.kind === "missingRate") {
-      throw new OperationError("conflict", "Cadastre uma tarifa vigente antes de registrar a entrada.");
+      throw new OperationError("conflict", "Cadastre uma tarifa vigente antes de registrar a reserva.");
     }
     return { visit: visitView(result.visit), duplicate: result.kind === "duplicate" };
   }

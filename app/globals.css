@@ -1,4 +1,30 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+@theme inline {
+  --color-background: var(--color-white);
+  --color-foreground: var(--color-slate-950);
+  --color-border: var(--color-slate-200);
+  --color-input: var(--color-slate-400);
+  --color-ring: var(--color-emerald-600);
+  --color-primary: var(--color-emerald-700);
+  --color-primary-foreground: var(--color-white);
+  --color-secondary: var(--color-slate-100);
+  --color-secondary-foreground: var(--color-slate-900);
+  --color-accent: var(--color-slate-100);
+  --color-accent-foreground: var(--color-slate-900);
+  --color-muted: var(--color-slate-100);
+  --color-muted-foreground: var(--color-slate-600);
+  --color-popover: var(--color-white);
+  --color-popover-foreground: var(--color-slate-950);
+  --color-destructive: var(--color-rose-700);
+  --color-sidebar: var(--color-white);
+  --color-sidebar-foreground: var(--color-slate-800);
+  --color-sidebar-accent: var(--color-emerald-50);
+  --color-sidebar-accent-foreground: var(--color-emerald-800);
+  --color-sidebar-border: var(--color-slate-200);
+  --color-sidebar-ring: var(--color-emerald-600);
+}
 
 :root {
   color-scheme: dark;
@@ -45,5 +71,38 @@ body {
 
   :is(.campo input, .campo select, .campo textarea, .botao, .link):focus-visible {
     @apply outline-2 outline-offset-4 outline-emerald-300;
+  }
+
+  .operator-shell {
+    color-scheme: light;
+    @apply bg-white text-slate-950;
+  }
+
+  .operator-shell .painel {
+    @apply border-slate-200 bg-white shadow-sm shadow-slate-900/5;
+  }
+
+  .operator-shell .marca {
+    @apply text-emerald-800;
+  }
+
+  .operator-shell .campo :is(input:not([type="checkbox"]), select, textarea) {
+    @apply border-slate-400 bg-white text-slate-950;
+  }
+
+  .operator-shell .botao {
+    @apply border-slate-400 text-slate-800 hover:bg-slate-100;
+  }
+
+  .operator-shell .botao-primario {
+    @apply border-emerald-700 bg-emerald-700 text-white hover:border-emerald-800 hover:bg-emerald-800;
+  }
+
+  .operator-shell .link {
+    @apply text-emerald-800 decoration-emerald-700/60 hover:decoration-emerald-800;
+  }
+
+  .operator-shell :is(.campo input, .campo select, .campo textarea, .botao, .link):focus-visible {
+    @apply outline-emerald-600;
   }
 }

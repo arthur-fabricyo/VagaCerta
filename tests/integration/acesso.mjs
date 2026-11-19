@@ -74,6 +74,9 @@ test("páginas públicas e proteção de visitantes sem sessão", async () => {
   assert.equal((await request("/api/usuarios")).status, 401);
   assert.equal((await request("/")).headers.get("location"), "/entrar");
   assert.equal((await request("/usuarios")).headers.get("location"), "/entrar");
+  for (const path of ["/reservations", "/settings"]) {
+    assert.equal((await request(path)).headers.get("location"), "/entrar");
+  }
   for (const [path, titulo] of [["/entrar", /Entrar/], ["/cadastro", /Criar conta/]]) {
     const pagina = await (await request(path)).text();
     assert.match(pagina, titulo);
@@ -85,7 +88,11 @@ test("cadastro pendente, aprovação e acesso com a mesma sessão", async () => 
   const operator = await operatorCookie();
   const { id, email, cookie } = await pendingUser();
   assert.equal((await request("/api/usuarios", { cookie })).status, 403);
+  assert.equal((await request("/api/dashboard", { cookie })).status, 403);
   assert.equal((await request("/", { cookie })).headers.get("location"), "/aguardando-aprovacao");
+  for (const path of ["/reservations", "/settings"]) {
+    assert.equal((await request(path, { cookie })).headers.get("location"), "/aguardando-aprovacao");
+  }
   assert.match(await (await request("/aguardando-aprovacao", { cookie })).text(), /Cadastro aguardando aprovação/);
   assert.equal((await decision(id, "aprovar", cookie)).status, 403);
   assert.equal((await decision(id, "invalidar", operator)).status, 400);
@@ -95,6 +102,9 @@ test("cadastro pendente, aprovação e acesso com a mesma sessão", async () => 
   assert.ok(listed.pendentes.some((user) => user.id === id && user.email === email));
   assert.equal((await decision(id, "aprovar", operator)).status, 200);
   assert.equal((await request("/", { cookie })).status, 200);
+  for (const path of ["/reservations", "/settings"]) {
+    assert.equal((await request(path, { cookie })).status, 200);
+  }
   const updated = await (await request("/api/usuarios", { cookie })).json();
   assert.ok(updated.aprovados.some((user) => user.id === id));
   assert.ok(!updated.pendentes.some((user) => user.id === id));

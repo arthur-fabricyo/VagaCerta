@@ -3,33 +3,39 @@
 import { useState } from "react";
 import { authClient } from "../../lib/auth-client";
 
-export function Sair() {
-  const [saindo, setSaindo] = useState(false);
-  const [erro, setErro] = useState(false);
+export function useSignOut() {
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState(false);
 
-  async function sair() {
-    setSaindo(true);
-    setErro(false);
+  async function signOut() {
+    setPending(true);
+    setError(false);
     try {
-      const resultado = await authClient.signOut();
-      if (!resultado.error) {
+      const result = await authClient.signOut();
+      if (!result.error) {
         window.location.replace("/entrar");
         return;
       }
-      setErro(true);
+      setError(true);
     } catch {
-      setErro(true);
+      setError(true);
     } finally {
-      setSaindo(false);
+      setPending(false);
     }
   }
 
+  return { signOut, pending, error };
+}
+
+export function Sair() {
+  const { signOut, pending, error } = useSignOut();
+
   return (
     <div className="flex flex-col items-start gap-2">
-      <button type="button" className="botao" disabled={saindo} onClick={sair}>
-        {saindo ? "Saindo…" : "Sair"}
+      <button type="button" className="botao" disabled={pending} onClick={signOut}>
+        {pending ? "Saindo…" : "Sair"}
       </button>
-      {erro && <p role="alert" className="text-sm text-rose-300">Não foi possível sair. Tente novamente.</p>}
+      {error && <p role="alert" className="text-sm text-rose-300">Não foi possível sair. Tente novamente.</p>}
     </div>
   );
 }

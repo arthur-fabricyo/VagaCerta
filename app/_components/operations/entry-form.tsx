@@ -70,22 +70,22 @@ export function EntryForm({ unit, onOpenSettings }: { unit: Unit; onOpenSettings
 
   return (
     <section className="painel space-y-4" aria-labelledby="entry-heading">
-      <h2 id="entry-heading" className="text-xl font-semibold">Registrar entrada</h2>
+      <h2 id="entry-heading" className="text-xl font-semibold">Registrar reserva</h2>
       {!unit.activeRate ? (
         <>
-          <p className="text-slate-300">Esta unidade precisa de uma tarifa vigente para registrar entradas.</p>
+          <p className="text-slate-600">Esta unidade precisa de uma tarifa vigente para registrar reservas.</p>
           <button className="botao" type="button" onClick={onOpenSettings}>Cadastrar tarifa</button>
         </>
       ) : (
         <>
-          <p className="text-slate-300">
+          <p className="text-slate-600">
             Tarifa vigente de {formatPrice(unit.activeRate.priceCents)}
             {unit.activeRate.mode === "blocks" ? ` por bloco de ${unit.activeRate.blockMinutes} min.` : " por hora."}
           </p>
-          {error && <p role="alert" className="text-rose-300">{error}</p>}
+          {error && <p role="alert" className="text-rose-700">{error}</p>}
           {result && (
-            <div role="status" className="space-y-2 rounded-lg border border-slate-600 p-3">
-              <p>{result.duplicate ? "Já existe uma visita em aberto" : "Entrada registrada"} para {result.visit.plate}.</p>
+            <div role="status" className="space-y-2 rounded-lg border border-slate-300 p-3">
+              <p>{result.duplicate ? "Já existe uma visita em aberto" : "Reserva registrada"} para {result.visit.plate}.</p>
               <Link className="link" href={`/visits/${result.visit.id}`}>Abrir visita</Link>
             </div>
           )}
@@ -98,7 +98,7 @@ export function EntryForm({ unit, onOpenSettings }: { unit: Unit; onOpenSettings
                   value={plate} onChange={(event) => updatePlate(event.target.value)} />
               </label>
               <label className="flex min-h-11 items-center gap-3 text-sm">
-                <input type="checkbox" className="size-5 accent-emerald-300 focus-visible:outline-emerald-300"
+                <input type="checkbox" className="size-5 accent-emerald-700 focus-visible:outline-emerald-600"
                   required checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} />
                 Conferi a placa do veículo
               </label>
@@ -108,7 +108,7 @@ export function EntryForm({ unit, onOpenSettings }: { unit: Unit; onOpenSettings
               </label>
             </fieldset>
             <button className="botao botao-primario" type="submit" disabled={saving}>
-              {saving ? "Registrando…" : "Registrar entrada"}
+              {saving ? "Registrando…" : "Registrar reserva"}
             </button>
           </form>
         </>

@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { exigirOperador } from "../../lib/acesso";
-import { getPlateHistory, listHistoryUnits } from "../../lib/history/history-service";
+import { exigirOperador } from "@/lib/acesso";
+import { getPlateHistory, listHistoryUnits } from "@/lib/history/history-service";
 
 type HistoryParams = Partial<Record<"unitId" | "plate" | "start" | "end", string | string[]>>;
 const weekdays = ["segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado", "domingo"];
@@ -57,7 +57,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
             : "Todo o histórico da unidade"}</p>
           <p>{history.total === 0 ? "Nenhuma visita encerrada no período."
             : history.total === 1 ? "1 visita encerrada" : `${history.total} visitas encerradas`}</p>
-          {history.lastEntryAt && <p>Última entrada em {new Intl.DateTimeFormat("pt-BR", {
+          {history.lastEntryAt && <p>Última reserva em {new Intl.DateTimeFormat("pt-BR", {
             timeZone: unit.fuso, dateStyle: "short", timeStyle: "short",
           }).format(history.lastEntryAt)}</p>}
           {history.peaks.length > 0 && (
