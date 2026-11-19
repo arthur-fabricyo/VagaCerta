@@ -1,19 +1,29 @@
 import Link from "next/link";
 import { exigirOperador } from "../lib/acesso";
 import { Sair } from "./_components/sair";
+import { OperationsDashboard } from "./_components/operations/dashboard";
 
-export default async function PaginaInicial() {
-  const usuario = await exigirOperador();
+type HomeProps = { searchParams: Promise<{ unitId?: string | string[]; section?: string | string[] }> };
+
+export default async function HomePage({ searchParams }: HomeProps) {
+  const operator = await exigirOperador();
+  const { unitId, section } = await searchParams;
   return (
-    <main className="mx-auto w-full max-w-4xl px-6 py-10 sm:px-10">
+    <main className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-10 sm:py-10">
       <header className="flex flex-wrap items-start justify-between gap-4">
-        <h1 className="text-4xl font-semibold tracking-tight">VagaCerta</h1>
-        <Sair />
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">VagaCerta</h1>
+          <p className="mt-2 break-words text-slate-300">Olá, {operator.name}.</p>
+        </div>
+        <nav className="flex flex-wrap gap-2" aria-label="Conta">
+          <Link className="botao" href="/usuarios">Usuários</Link>
+          <Sair />
+        </nav>
       </header>
-      <p className="mt-5 break-words text-slate-300">Olá, {usuario.name}.</p>
-      <nav className="mt-6" aria-label="Operação">
-        <Link className="botao botao-primario" href="/usuarios">Usuários</Link>
-      </nav>
+      <OperationsDashboard
+        initialUnitId={typeof unitId === "string" ? unitId : undefined}
+        initialSection={section === "yard" ? "yard" : undefined}
+      />
     </main>
   );
 }

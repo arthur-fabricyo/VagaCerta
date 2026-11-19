@@ -23,8 +23,12 @@ body {
     @apply flex flex-col gap-2 text-sm font-medium;
   }
 
-  .campo input {
+  .campo :is(input:not([type="checkbox"]), select, textarea) {
     @apply min-h-11 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 text-base text-slate-50;
+  }
+
+  .campo textarea {
+    @apply py-2;
   }
 
   .botao {
@@ -39,7 +43,7 @@ body {
     @apply font-semibold text-emerald-300 underline decoration-emerald-300/50 underline-offset-4 hover:decoration-emerald-300;
   }
 
-  :is(.campo input, .botao, .link):focus-visible {
+  :is(.campo input, .campo select, .campo textarea, .botao, .link):focus-visible {
     @apply outline-2 outline-offset-4 outline-emerald-300;
   }
 }
