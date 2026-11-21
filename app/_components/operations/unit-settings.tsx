@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { formatPrice, formatTimestamp, messageFor, send, type Rate, type Unit } from "./api";
+import { currencyInputToCents, formatCurrencyInput, removeCurrencyDigit } from "@/lib/input-format";
+import { TimeZoneSelect } from "./time-zone-select";
+import { messageFor, send, type Rate, type Unit } from "./api";
 
-type SettingsProps = { unit?: Unit; onUnitChange: (unit: Unit, reason: "created" | "rate") => void };
+type SettingsProps = { mode: "unit" | "rate"; unit?: Unit; onUnitChange: (unit: Unit, reason: "created" | "rate") => void };
 
-export function UnitSettings({ unit, onUnitChange }: SettingsProps) {
+export function UnitSettings({ mode, unit, onUnitChange }: SettingsProps) {
   const rate = unit?.activeRate;
   const [rateMode, setRateMode] = useState<Rate["mode"]>(rate?.mode ?? "proportional");
+  const [price, setPrice] = useState(() => rate ? formatCurrencyInput(String(rate.priceCents)) : "");
   const [saving, setSaving] = useState<"unit" | "rate" | null>(null);
   const [error, setError] = useState("");
 
@@ -36,12 +39,17 @@ export function UnitSettings({ unit, onUnitChange }: SettingsProps) {
     event.preventDefault();
     if (saving || !unit) return;
     const fields = new FormData(event.currentTarget);
+    const priceCents = currencyInputToCents(price);
+    if (priceCents === null || priceCents < 1 || priceCents > 2_147_483_647) {
+      setError("Informe uma tarifa entre R$ 0,01 e R$ 21.474.836,47.");
+      return;
+    }
     setError("");
     setSaving("rate");
     try {
       const { rate: published } = await send<{ rate: Rate }>(`/api/units/${unit.id}/rates`, "POST", {
         mode: rateMode,
-        priceCents: Math.round(Number(fields.get("price")) * 100),
+        priceCents,
         ...(rateMode === "blocks" ? { blockMinutes: Number(fields.get("blockMinutes")) } : {}),
         graceMinutes: Number(fields.get("graceMinutes")),
         graceMode: fields.get("graceMode"),
@@ -55,18 +63,13 @@ export function UnitSettings({ unit, onUnitChange }: SettingsProps) {
   }
 
   return (
-    <div className="space-y-5" aria-busy={saving !== null}>
+    <div className="space-y-6" aria-busy={saving !== null}>
       {error && <p role="alert" className="painel text-rose-700">{error}</p>}
-      {unit && (
+      {mode === "rate" && unit && (
         <section className="painel space-y-4" aria-labelledby="rate-heading">
           <h2 id="rate-heading" className="break-words text-xl font-semibold">Tarifa de {unit.name}</h2>
-          {rate ? (
-            <p className="text-slate-600">
-              Vigente desde {formatTimestamp(rate.effectiveAt, unit.timeZone)}. {formatPrice(rate.priceCents)}
-              {rate.mode === "blocks" ? ` por bloco de ${rate.blockMinutes} min.` : " por hora."}
-            </p>
-          ) : <p className="text-slate-600">Cadastre a primeira tarifa para liberar as reservas nesta unidade.</p>}
-          <form className="space-y-4" onSubmit={publishRate}>
+          <p className="text-slate-600">A nova tarifa será aplicada às reservas registradas após a publicação.</p>
+          <form autoComplete="off" className="space-y-4" onSubmit={publishRate}>
             <fieldset disabled={saving !== null} className="grid gap-4 sm:grid-cols-2">
               <label className="campo">
                 Modo de cobrança
@@ -77,8 +80,16 @@ export function UnitSettings({ unit, onUnitChange }: SettingsProps) {
               </label>
               <label className="campo">
                 {rateMode === "blocks" ? "Preço por bloco (R$)" : "Preço por hora (R$)"}
-                <input name="price" type="number" min="0.01" max="21474836.47" step="0.01" required
-                  defaultValue={rate ? rate.priceCents / 100 : undefined} />
+                <input name="price" type="text" inputMode="numeric" required placeholder="0,00"
+                  value={price} onChange={(event) => setPrice(formatCurrencyInput(event.target.value))}
+                  onKeyDown={(event) => {
+                    const input = event.currentTarget;
+                    if (event.key === "Backspace" && !event.ctrlKey && !event.metaKey && !event.altKey
+                      && input.selectionStart === input.value.length && input.selectionEnd === input.value.length) {
+                      event.preventDefault();
+                      setPrice(removeCurrencyDigit(input.value));
+                    }
+                  }} />
               </label>
               {rateMode === "blocks" && (
                 <label className="campo">
@@ -106,9 +117,9 @@ export function UnitSettings({ unit, onUnitChange }: SettingsProps) {
           </form>
         </section>
       )}
-      <section className="painel space-y-4" aria-labelledby="unit-heading">
+      {mode === "unit" && <section className="painel space-y-4" aria-labelledby="unit-heading">
         <h2 id="unit-heading" className="text-xl font-semibold">Cadastrar unidade</h2>
-        <form className="space-y-4" onSubmit={createUnit}>
+        <form autoComplete="off" className="space-y-4" onSubmit={createUnit}>
           <fieldset className="grid gap-4 sm:grid-cols-2" disabled={saving !== null}>
             <label className="campo">
               Nome
@@ -116,22 +127,14 @@ export function UnitSettings({ unit, onUnitChange }: SettingsProps) {
             </label>
             <label className="campo">
               Fuso horário
-              <input name="timeZone" type="text" list="unit-time-zones" maxLength={100}
-                defaultValue="America/Sao_Paulo" required />
+              <TimeZoneSelect />
             </label>
-            <datalist id="unit-time-zones">
-              <option value="America/Sao_Paulo" />
-              <option value="America/Manaus" />
-              <option value="America/Recife" />
-              <option value="America/Rio_Branco" />
-              <option value="America/Noronha" />
-            </datalist>
           </fieldset>
           <button className="botao botao-primario" type="submit" disabled={saving !== null}>
             {saving === "unit" ? "Cadastrando…" : "Cadastrar unidade"}
           </button>
         </form>
-      </section>
+      </section>}
     </div>
   );
 }

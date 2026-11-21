@@ -49,21 +49,21 @@ export function FormularioAcesso({ cadastro = false }: { cadastro?: boolean }) {
         {cadastro && (
           <p className="mt-2 text-sm text-slate-300">Um operador precisa aprovar seu cadastro para liberar o acesso.</p>
         )}
-        <form className="mt-6 flex flex-col gap-4" method="post" onSubmit={enviar}>
+        <form autoComplete="off" className="mt-6 flex flex-col gap-4" method="post" onSubmit={enviar}>
           {cadastro && (
             <label className="campo">
               Nome
-              <input autoComplete="name" name="name" maxLength={120} pattern=".*\S.*" required />
+              <input autoComplete="off" name="name" maxLength={120} pattern=".*\S.*" required />
             </label>
           )}
           <label className="campo">
             E-mail
-            <input autoComplete="email" type="email" name="email" maxLength={254} required />
+            <input autoComplete="off" type="email" name="email" maxLength={254} required />
           </label>
           <div className="campo">
             <label htmlFor="senha">Senha</label>
             <input
-              autoComplete={cadastro ? "new-password" : "current-password"}
+              autoComplete="off"
               type="password"
               name="password"
               id="senha"

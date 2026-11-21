@@ -1,8 +1,10 @@
 "use client";
 
+import { ImageOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { EmptyState } from "@/app/_components/empty-state";
 import { formatDuration, formatPrice, formatTimestamp, messageFor, request, send, type Visit }
   from "@/app/_components/operations/api";
 
@@ -59,7 +61,7 @@ export function VisitDetail({ id }: { id: string }) {
 
   const backUrl = visit ? `/?unitId=${encodeURIComponent(visit.unit.id)}&section=yard` : "/";
   return (
-    <div className="space-y-4" aria-busy={loading || saving}>
+    <div className="space-y-6" aria-busy={loading || saving}>
       <p><Link className="link" href={backUrl}>Voltar ao pátio</Link></p>
       {loading && <p role="status">Carregando visita…</p>}
       {error && (
@@ -118,7 +120,7 @@ export function VisitDetail({ id }: { id: string }) {
             {visit.hasPhoto
               ? <Image src={`${path}/photo`} alt={`Foto de reserva de ${visit.plate}`}
                 width={360} height={240} className="h-auto max-h-60 w-auto max-w-full rounded-lg object-contain" unoptimized />
-              : <p className="text-sm text-slate-600">Visita sem foto.</p>}
+              : <EmptyState compact icon={<ImageOff />} title="Sem foto" description="Nenhuma foto foi anexada a esta reserva." />}
           </section>
           {visit.status === "closed" && visit.totalCents !== null && (
             <section className="painel space-y-3" aria-labelledby="charge-heading">

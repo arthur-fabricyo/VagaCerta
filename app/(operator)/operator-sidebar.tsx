@@ -1,8 +1,8 @@
 "use client";
 
-import { CalendarDays, ChevronUp, LayoutDashboard, LogOut, Settings } from "lucide-react";
+import { ArrowDownToLine, CalendarDays, ChevronUp, History, LayoutDashboard, LogOut, ParkingSquare, Settings, UsersRound } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useSignOut } from "@/app/_components/sair";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -14,13 +14,21 @@ import {
 } from "@/components/ui/sidebar";
 
 const pages = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard, paths: ["/history", "/visits"] },
-  { href: "/reservations", label: "Reservas", icon: CalendarDays, paths: [] },
-  { href: "/settings", label: "Configurações", icon: Settings, paths: ["/usuarios"] },
-];
+  { href: "/", label: "Dashboard", icon: LayoutDashboard, section: "today" },
+  { href: "/reservations", label: "Reservas", icon: CalendarDays },
+  { href: "/", label: "Registrar reserva", icon: ArrowDownToLine, section: "entry" },
+  { href: "/", label: "Pátio", icon: ParkingSquare, section: "yard" },
+  { href: "/history", label: "Histórico", icon: History },
+  { href: "/settings", label: "Configurações", icon: Settings },
+  { href: "/usuarios", label: "Usuários", icon: UsersRound },
+] as const;
 
 export function OperatorSidebar({ name }: { name: string }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const unitId = searchParams.get("unitId");
+  const section = searchParams.get("section");
+  const unitQuery = unitId ? `?unitId=${encodeURIComponent(unitId)}` : "";
   const { setOpenMobile } = useSidebar();
   const { signOut, pending, error } = useSignOut();
   const initials = name.trim().split(/\s+/).slice(0, 2)
@@ -29,19 +37,27 @@ export function OperatorSidebar({ name }: { name: string }) {
   return (
     <Sidebar>
       <SidebarHeader className="px-5 pb-5 pt-6">
-        <Link href="/" className="w-fit rounded-sm text-lg font-semibold tracking-wide text-emerald-800 focus-visible:outline-2"
+        <Link href={`/${unitQuery}`} className="w-fit rounded-sm text-lg font-semibold tracking-wide text-emerald-800 focus-visible:outline-2"
           onNavigate={() => setOpenMobile(false)}>VagaCerta</Link>
       </SidebarHeader>
       <SidebarContent className="px-3">
         <nav aria-label="Navegação principal">
           <SidebarMenu>
-            {pages.map(({ href, label, icon: Icon, paths }) => {
-              const active = pathname === href || paths.some((path) =>
-                pathname === path || pathname.startsWith(`${path}/`));
+            {pages.map((page) => {
+              const { href, label, icon: Icon } = page;
+              const pageSection = "section" in page ? page.section : undefined;
+              const active = pageSection
+                ? (pathname === "/" && (pageSection === "today" ? section !== "yard" && section !== "entry" : section === pageSection))
+                  || (pageSection === "yard" && pathname.startsWith("/visits/"))
+                : pathname === href || pathname.startsWith(`${href}/`);
+              const params = new URLSearchParams();
+              if (unitId) params.set("unitId", unitId);
+              if (pageSection && pageSection !== "today") params.set("section", pageSection);
+              const query = params.toString();
               return (
-                <SidebarMenuItem key={href}>
+                <SidebarMenuItem key={label}>
                   <SidebarMenuButton asChild isActive={active} className="h-10">
-                    <Link href={href} aria-current={active ? "page" : undefined}
+                    <Link href={`${href}${query ? `?${query}` : ""}`} aria-current={active ? "page" : undefined}
                       onNavigate={() => setOpenMobile(false)}>
                       <Icon aria-hidden="true" />
                       <span>{label}</span>

@@ -24,6 +24,12 @@ export function useUnits(selectedUnitId?: string) {
     return () => controller.abort();
   }, [loadAttempt]);
 
+  useEffect(() => {
+    const reload = () => setLoadAttempt((previous) => previous + 1);
+    window.addEventListener("vagacerta:units-changed", reload);
+    return () => window.removeEventListener("vagacerta:units-changed", reload);
+  }, []);
+
   function retry() {
     setError("");
     setLoading(true);
@@ -43,21 +49,6 @@ export function useUnits(selectedUnitId?: string) {
     retry,
     updateUnit,
   };
-}
-
-export function UnitSelector({ units, unit, onChange }: {
-  units: Unit[];
-  unit: Unit;
-  onChange: (id: string) => void;
-}) {
-  return (
-    <label className="campo w-full max-w-xs">
-      Unidade em operação
-      <select value={unit.id} onChange={(event) => onChange(event.target.value)}>
-        {units.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-      </select>
-    </label>
-  );
 }
 
 export function UnitLoadState({ loading, error, retry }: { loading: boolean; error: string; retry: () => void }) {

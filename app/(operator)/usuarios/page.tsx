@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { exigirOperador } from "@/lib/acesso";
 import { listarUsuarios } from "@/lib/usuarios";
 import { ListaUsuarios } from "./lista-usuarios";
@@ -8,11 +7,10 @@ export default async function Usuarios() {
   const usuarios = await listarUsuarios();
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-6 py-10 sm:px-10">
+    <main className="operator-page">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <Link className="link" href="/">VagaCerta</Link>
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight">Usuários</h1>
+          <h1 className="operator-page-title">Usuários</h1>
         </div>
       </header>
       <ListaUsuarios {...usuarios} />

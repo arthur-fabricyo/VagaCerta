@@ -73,6 +73,14 @@ body {
     @apply outline-2 outline-offset-4 outline-emerald-300;
   }
 
+  .operator-page {
+    @apply mx-auto w-full max-w-6xl space-y-6 px-5 py-8 sm:px-10;
+  }
+
+  .operator-page-title {
+    @apply break-words text-3xl font-semibold tracking-tight sm:text-4xl;
+  }
+
   .operator-shell {
     color-scheme: light;
     @apply bg-white text-slate-950;
