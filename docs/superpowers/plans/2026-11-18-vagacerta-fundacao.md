@@ -21,6 +21,6 @@
 
 1. Integrar o seed e Better Auth, confirmando a estratégia de proteção de páginas antes de implementá-la. Testar sessões anônimas, pendentes e aprovadas.
 2. Entregar o fluxo manual persistente de unidade, tarifa, entrada, pátio, detalhe, cancelamento e saída. Testar entradas concorrentes e saídas repetidas no PostgreSQL, inclusive quando a tarifa mudar durante a visita.
-3. Adicionar foto e leitura real via Gemini e AI SDK. Mostrar falhas de leitura e de cota e manter a opção de entrada manual. Validar a foto também ao gravar a visita.
+3. Adicionar foto e leitura real via Grok e AI SDK. Mostrar falhas de leitura e de cota e manter a opção de entrada manual. Validar a foto também ao gravar a visita.
 4. Entregar histórico por placa e fuso da unidade, preservando empates e excluindo visitas canceladas. Preparar consultas, esquema, dados de demonstração e comparação do índice com `EXPLAIN`.
 5. Verificar a aplicação publicada no Vercel com Neon e reunir as evidências do edital, incluindo celular, teclado, consulta após recarregar e chamada real de IA.
