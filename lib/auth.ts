@@ -29,6 +29,7 @@ function createAuth() {
     secret,
     database: prismaAdapter(getDb(), { provider: "postgresql", transaction: true }),
     emailAndPassword: { enabled: true },
+    session: { expiresIn: 8 * 60 * 60, disableSessionRefresh: true },
     user: {
       additionalFields: {
         aprovado: { type: "boolean", defaultValue: false, input: false },

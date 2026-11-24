@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { test } from "node:test";
 import { setTimeout as esperar } from "node:timers/promises";
 import { config } from "dotenv";
+import pg from "pg";
 
 config({ path: [".env.local", ".env"], quiet: true });
 const { BETTER_AUTH_URL, DATABASE_URL, SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD } = process.env;
@@ -69,6 +70,29 @@ async function operatorCookie() {
 function decision(id, acao, cookie, from) {
   return request(`/api/usuarios/${id}`, { method: "PATCH", cookie, from, body: { acao } });
 }
+
+test("session expires after eight hours without automatic renewal", async () => {
+  const response = await signIn(SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD);
+  assert.equal(response.status, 200);
+  const cookie = sessionCookie(response);
+  const initial = await (await request("/api/auth/get-session", { cookie })).json();
+  const lifetime = new Date(initial.session.expiresAt) - new Date(initial.session.createdAt);
+  assert.ok(Math.abs(lifetime - 8 * 60 * 60 * 1000) < 1000);
+
+  const db = new pg.Client({ connectionString: DATABASE_URL });
+  await db.connect();
+  try {
+    const expiresAt = new Date(Date.now() + 60_000);
+    await db.query('UPDATE "session" SET "expiresAt" = $1 WHERE "id" = $2', [expiresAt.toISOString().replace("T", " ").replace("Z", ""), initial.session.id]);
+    const refreshed = await (await request("/api/auth/get-session", { cookie })).json();
+    assert.equal(new Date(refreshed.session.expiresAt).getTime(), expiresAt.getTime());
+    await db.query('UPDATE "session" SET "expiresAt" = $1 WHERE "id" = $2', [new Date(Date.now() - 1000).toISOString().replace("T", " ").replace("Z", ""), initial.session.id]);
+    assert.equal((await request("/api/usuarios", { cookie })).status, 401);
+  } finally {
+    await db.query('DELETE FROM "session" WHERE "id" = $1', [initial.session.id]);
+    await db.end();
+  }
+});
 
 test("páginas públicas e proteção de visitantes sem sessão", async () => {
   assert.equal((await request("/api/usuarios")).status, 401);

@@ -2,7 +2,7 @@
 
 Sistema web de operação de estacionamento para o Projeto Integrador de Desenvolvimento Web, IA e Banco de Dados.
 
-Operadores aprovados registram reservas, localizam veículos no pátio, encerram visitas com cobrança simulada e consultam o histórico por placa. A leitura por foto usa Grok para sugerir uma placa que o operador pode corrigir antes de confirmar a reserva.
+Operadores aprovados registram reservas, localizam veículos no pátio, encerram visitas com cobrança simulada e consultam o histórico por placa. A leitura por foto usa IA pela Groq para sugerir uma placa que o operador pode corrigir antes de confirmar a reserva.
 
 ## Arquitetura
 
@@ -39,7 +39,7 @@ Copie `.env.example` para `.env.local` e preencha as variáveis abaixo.
 - `BETTER_AUTH_URL` com a origem da aplicação, por exemplo `http://localhost:3000`.
 - `BETTER_AUTH_SECRET` com um segredo aleatório. Gere um com `node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))"`.
 - `SEED_ADMIN_EMAIL` e `SEED_ADMIN_PASSWORD` com as credenciais do primeiro operador.
-- `XAI_API_KEY` e `AI_MODEL` para sugerir placas a partir de fotos. Configure um modelo Grok com visão. A reserva manual está disponível mesmo quando a leitura por foto falha.
+- `GROQ_API_KEY` e `GROQ_MODEL` para sugerir placas a partir de fotos. Configure um modelo Groq com visão. A reserva manual está disponível mesmo quando a leitura por foto falha.
 
 ```bash
 pnpm db:migrate
