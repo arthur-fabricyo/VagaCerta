@@ -28,57 +28,256 @@ flowchart TD
 
 ## Modelo do banco de dados
 
-O diagrama apresenta as tabelas principais e as relações usadas na operação e na autenticação. A tabela `verification` é independente e armazena dados de verificação.
+O banco é PostgreSQL, acessado via Prisma (`prisma/schema.prisma`). O modelo tem sete tabelas e se divide em dois grupos:
+
+- **Autenticação** (`user`, `session`, `account`, `verification`): tabelas usadas pelo Better Auth. A coluna `aprovado` em `user` controla quais cadastros podem operar o sistema.
+- **Operação** (`unidades`, `tarifas`, `visitas`): unidades de estacionamento, tarifas versionadas por vigência e o registro de cada visita de veículo.
+
+A tabela `verification` é independente e armazena dados de verificação.
+
+### Diagrama entidade-relacionamento
 
 ```mermaid
 erDiagram
-    USER ||--o{ SESSION : autentica
-    USER ||--o{ ACCOUNT : possui
-    USER ||--o{ VISIT : registra_entrada
-    USER |o--o{ VISIT : registra_saida
-    UNIT ||--o{ RATE : possui
-    UNIT ||--o{ VISIT : recebe
-    RATE ||--o{ VISIT : define_valor
+    USER ||--o{ SESSION : "autentica"
+    USER ||--o{ ACCOUNT : "possui"
+    USER ||--o{ VISITAS : "registra entrada"
+    USER |o--o{ VISITAS : "registra saída"
+    UNIDADES ||--o{ TARIFAS : "possui"
+    UNIDADES ||--o{ VISITAS : "recebe"
+    TARIFAS ||--o{ VISITAS : "define o valor"
+
     USER {
         text id PK
-        text email
+        text name
+        text email UK
+        boolean emailVerified
+        text image "opcional"
+        timestamp createdAt
+        timestamp updatedAt
+        boolean aprovado "default false"
     }
     SESSION {
         text id PK
+        text token UK
+        timestamp expiresAt
+        text ipAddress "opcional"
+        text userAgent "opcional"
+        timestamp createdAt
+        timestamp updatedAt
         text userId FK
     }
     ACCOUNT {
         text id PK
+        text accountId
+        text providerId
+        text accessToken "opcional"
+        text refreshToken "opcional"
+        timestamp accessTokenExpiresAt "opcional"
+        timestamp refreshTokenExpiresAt "opcional"
+        text scope "opcional"
+        text idToken "opcional"
+        text password "opcional"
+        timestamp createdAt
+        timestamp updatedAt
         text userId FK
     }
     VERIFICATION {
         text id PK
         text identifier
+        text value
+        timestamp expiresAt
+        timestamp createdAt
+        timestamp updatedAt
     }
-    UNIT {
+    UNIDADES {
         uuid id PK
-        text nome
+        text nome UK
         text fuso
+        timestamptz criado_em
     }
-    RATE {
+    TARIFAS {
         uuid id PK
         uuid unidade_id FK
+        text modo
         integer preco_centavos
+        integer bloco_minutos "opcional"
+        integer tolerancia_minutos "default 0"
+        text tolerancia_modo "default cobra_total"
         timestamptz vigente_desde
+        timestamptz criado_em
     }
-    VISIT {
+    VISITAS {
         uuid id PK
         uuid unidade_id FK
         uuid tarifa_id FK
+        varchar placa "7 caracteres"
+        varchar placa_sugerida_ia "opcional"
+        text confianca_ia "opcional"
+        bytea foto "opcional"
+        text foto_mime "opcional"
+        text observacao "opcional"
         text operador_entrada_id FK
-        text operador_saida_id FK
-        varchar placa
+        text operador_saida_id FK "opcional"
         timestamptz entrada_em
-        text status
+        timestamptz saida_em "opcional"
+        numeric duracao_seg "opcional"
+        numeric cobravel_seg "opcional"
+        integer blocos "opcional"
+        integer valor_centavos "opcional"
+        text status "default aberta"
+        timestamptz criado_em
     }
 ```
 
-No PostgreSQL, `UNIT`, `RATE` e `VISIT` representam as tabelas `unidades`, `tarifas` e `visitas`. A chave estrangeira composta da visita garante que sua tarifa pertença à mesma unidade; um índice único parcial impede duas visitas abertas para a mesma placa na unidade. Veja também o [diagrama detalhado](docs/diagrama-banco.md).
+As relações `TARIFAS → VISITAS` e `UNIDADES → VISITAS` se combinam numa chave estrangeira composta (`unidade_id`, `tarifa_id`), descrita em [Restrições e índices](#restrições-e-índices). Veja também o [diagrama detalhado](docs/diagrama-banco.md).
+
+### Tabelas de autenticação
+
+Os nomes das colunas seguem o padrão do Better Auth (camelCase). Datas sem fuso são `timestamp(3)`.
+
+#### `user`
+
+Operadores do sistema.
+
+| Coluna | Tipo | Regra | Descrição |
+| --- | --- | --- | --- |
+| `id` | text | PK | Identificador do usuário |
+| `name` | text | obrigatório | Nome |
+| `email` | text | único | E-mail de login |
+| `emailVerified` | boolean | default `false` | E-mail verificado |
+| `image` | text | opcional | Imagem de perfil |
+| `createdAt` | timestamp(3) | default `now()` | Criação |
+| `updatedAt` | timestamp(3) | atualizado automaticamente | Última alteração |
+| `aprovado` | boolean | default `false` | Indica se um operador aprovado liberou o cadastro |
+
+#### `session`
+
+Sessões ativas de login.
+
+| Coluna | Tipo | Regra | Descrição |
+| --- | --- | --- | --- |
+| `id` | text | PK | Identificador da sessão |
+| `token` | text | único | Token da sessão |
+| `expiresAt` | timestamp(3) | obrigatório | Expiração |
+| `ipAddress` | text | opcional | IP de origem |
+| `userAgent` | text | opcional | Navegador/dispositivo |
+| `createdAt` / `updatedAt` | timestamp(3) | default `now()` / automático | Auditoria |
+| `userId` | text | FK → `user.id`, `ON DELETE CASCADE` | Dono da sessão |
+
+#### `account`
+
+Credenciais e vínculos de provedores de autenticação.
+
+| Coluna | Tipo | Regra | Descrição |
+| --- | --- | --- | --- |
+| `id` | text | PK | Identificador |
+| `accountId` | text | obrigatório | Identificador da conta no provedor |
+| `providerId` | text | obrigatório | Provedor de autenticação |
+| `accessToken`, `refreshToken`, `idToken` | text | opcionais | Tokens do provedor |
+| `accessTokenExpiresAt`, `refreshTokenExpiresAt` | timestamp(3) | opcionais | Expiração dos tokens |
+| `scope` | text | opcional | Escopo autorizado |
+| `password` | text | opcional | Hash da senha (login por e-mail e senha) |
+| `createdAt` / `updatedAt` | timestamp(3) | default `now()` / automático | Auditoria |
+| `userId` | text | FK → `user.id`, `ON DELETE CASCADE` | Dono da conta |
+
+#### `verification`
+
+Tokens de verificação (tabela independente, sem relações).
+
+| Coluna | Tipo | Regra | Descrição |
+| --- | --- | --- | --- |
+| `id` | text | PK | Identificador |
+| `identifier` | text | obrigatório, indexado | O que está sendo verificado |
+| `value` | text | obrigatório | Valor/código de verificação |
+| `expiresAt` | timestamp(3) | obrigatório | Expiração |
+| `createdAt` / `updatedAt` | timestamp(3) | default `now()` / automático | Auditoria |
+
+### Tabelas de operação
+
+Os identificadores usam snake_case, UUID gerado pelo banco (`gen_random_uuid()`) e datas com fuso (`timestamptz(3)`).
+
+#### `unidades`
+
+Unidades de estacionamento.
+
+| Coluna | Tipo | Regra | Descrição |
+| --- | --- | --- | --- |
+| `id` | uuid | PK, default `gen_random_uuid()` | Identificador |
+| `nome` | text | único | Nome da unidade |
+| `fuso` | text | obrigatório | Fuso horário da unidade, usado para exibir e filtrar horários |
+| `criado_em` | timestamptz(3) | default `now()` | Criação |
+
+#### `tarifas`
+
+Tarifas de cada unidade. Uma nova tarifa não altera as anteriores: cada uma vale a partir de `vigente_desde`, e as visitas guardam a tarifa aplicada.
+
+| Coluna | Tipo | Regra | Descrição |
+| --- | --- | --- | --- |
+| `id` | uuid | PK, default `gen_random_uuid()` | Identificador |
+| `unidade_id` | uuid | FK → `unidades.id`, `ON DELETE RESTRICT` | Unidade da tarifa |
+| `modo` | text | obrigatório | Modo de cobrança |
+| `preco_centavos` | integer | obrigatório | Preço em centavos |
+| `bloco_minutos` | integer | opcional | Duração do bloco de cobrança, em minutos |
+| `tolerancia_minutos` | integer | default `0` | Tolerância antes de cobrar, em minutos |
+| `tolerancia_modo` | text | default `cobra_total` | Como a tolerância é tratada na cobrança |
+| `vigente_desde` | timestamptz(3) | default `now()` | Início da vigência |
+| `criado_em` | timestamptz(3) | default `now()` | Criação |
+
+#### `visitas`
+
+Cada entrada de veículo na unidade, da reserva até a saída ou o cancelamento.
+
+| Coluna | Tipo | Regra | Descrição |
+| --- | --- | --- | --- |
+| `id` | uuid | PK, default `gen_random_uuid()` | Identificador |
+| `unidade_id` | uuid | FK → `unidades.id`, `ON DELETE RESTRICT` | Unidade da visita |
+| `tarifa_id` | uuid | FK composta com `unidade_id` → `tarifas` | Tarifa aplicada à visita |
+| `placa` | varchar(7) | obrigatório | Placa confirmada pelo operador |
+| `placa_sugerida_ia` | varchar(7) | opcional | Placa sugerida pela leitura da foto |
+| `confianca_ia` | text | opcional | Confiança informada pela IA |
+| `foto` | bytea | opcional | Foto do veículo |
+| `foto_mime` | text | opcional | Tipo MIME da foto |
+| `observacao` | text | opcional | Observação do operador |
+| `operador_entrada_id` | text | FK → `user.id`, `ON DELETE RESTRICT` | Operador que registrou a entrada |
+| `operador_saida_id` | text | FK → `user.id`, `ON DELETE RESTRICT`, opcional | Operador que registrou a saída |
+| `entrada_em` | timestamptz(3) | default `now()` | Momento da entrada |
+| `saida_em` | timestamptz(3) | opcional | Momento da saída |
+| `duracao_seg` | numeric(15,3) | opcional | Duração total, em segundos |
+| `cobravel_seg` | numeric(15,3) | opcional | Segundos considerados na cobrança |
+| `blocos` | integer | opcional | Quantidade de blocos cobrados |
+| `valor_centavos` | integer | opcional | Valor cobrado em centavos |
+| `status` | text | default `aberta` | Situação da visita |
+| `criado_em` | timestamptz(3) | default `now()` | Criação |
+
+Os campos `saida_em`, `duracao_seg`, `cobravel_seg`, `blocos`, `valor_centavos` e `operador_saida_id` ficam vazios enquanto a visita está aberta e são preenchidos no registro da saída.
+
+### Restrições e índices
+
+| Tabela | Restrição / índice | Finalidade |
+| --- | --- | --- |
+| `user` | único em `email` | Um cadastro por e-mail |
+| `session` | único em `token`; índice em `userId` | Busca de sessão pelo token e por usuário |
+| `account` | único em (`providerId`, `accountId`); índice em `userId` | Uma conta por provedor e busca por usuário |
+| `verification` | índice em `identifier` | Busca de verificações |
+| `unidades` | único em `nome` | Nomes de unidade não se repetem |
+| `tarifas` | único em (`unidade_id`, `vigente_desde`) | Uma única tarifa por unidade em cada instante de vigência |
+| `tarifas` | único em (`unidade_id`, `id`) | Alvo da chave estrangeira composta de `visitas` |
+| `visitas` | FK composta `visitas_tarifa_da_unidade_fkey` (`unidade_id`, `tarifa_id`) → `tarifas` (`unidade_id`, `id`) | A tarifa de uma visita sempre pertence à mesma unidade da visita |
+| `visitas` | índice único parcial `visitas_placa_aberta_unidade_key` em (`unidade_id`, `placa`) onde `status = 'aberta'` | Impede duas visitas abertas para a mesma placa na unidade |
+| `visitas` | índice em (`unidade_id`, `placa`, `entrada_em`) | Consulta do histórico por placa, unidade e período |
+
+### Regras de exclusão
+
+- `session` e `account` são removidas junto com o `user` (`CASCADE`).
+- `tarifas` e `visitas` usam `RESTRICT`: não é possível excluir uma unidade com tarifas ou visitas, nem uma tarifa ou um operador referenciados por visitas. Isso preserva o histórico e a cobrança já calculada.
+
+### Observações de implementação
+
+- O índice único parcial usa o recurso de preview `partialIndexes` do Prisma, habilitado no `generator client`.
+- Valores monetários ficam em centavos (`integer`) para evitar erro de arredondamento; durações usam `numeric(15,3)`.
+- A foto fica no próprio banco (`bytea`) e é servida por `GET /api/visits/[id]/photo`.
+- O cliente Prisma é gerado em `generated/prisma`.
 
 ## Arquitetura
 
