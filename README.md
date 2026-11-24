@@ -4,6 +4,82 @@ Sistema web de operação de estacionamento para o Projeto Integrador de Desenvo
 
 Operadores aprovados registram reservas, localizam veículos no pátio, encerram visitas com cobrança simulada e consultam o histórico por placa. A leitura por foto usa IA pela Groq para sugerir uma placa que o operador pode corrigir antes de confirmar a reserva.
 
+## Fluxo de operação
+
+```mermaid
+flowchart TD
+    A[Operador aprovado acessa o sistema] --> B[Seleciona a unidade]
+    B --> C{Como informar a placa?}
+    C -->|Digitação| D[Informa a placa]
+    C -->|Foto| E[Solicita leitura pela IA]
+    E --> F{Leitura disponível?}
+    F -->|Sim| G[Confere ou corrige a sugestão]
+    F -->|Não| D
+    D --> H[Confirma a entrada]
+    G --> H
+    H --> I[API valida e registra a visita no banco]
+    I --> J[Consulta o veículo no pátio]
+    J --> K{Próxima operação}
+    K -->|Saída| L[Calcula e registra a cobrança simulada]
+    K -->|Cancelamento| M[Cancela a visita]
+    L --> N[Consulta o histórico por placa]
+    M --> N
+```
+
+## Modelo do banco de dados
+
+O diagrama apresenta as tabelas principais e as relações usadas na operação e na autenticação. A tabela `verification` é independente e armazena dados de verificação.
+
+```mermaid
+erDiagram
+    USER ||--o{ SESSION : autentica
+    USER ||--o{ ACCOUNT : possui
+    USER ||--o{ VISIT : registra_entrada
+    USER |o--o{ VISIT : registra_saida
+    UNIT ||--o{ RATE : possui
+    UNIT ||--o{ VISIT : recebe
+    RATE ||--o{ VISIT : define_valor
+    USER {
+        text id PK
+        text email
+    }
+    SESSION {
+        text id PK
+        text userId FK
+    }
+    ACCOUNT {
+        text id PK
+        text userId FK
+    }
+    VERIFICATION {
+        text id PK
+        text identifier
+    }
+    UNIT {
+        uuid id PK
+        text nome
+        text fuso
+    }
+    RATE {
+        uuid id PK
+        uuid unidade_id FK
+        integer preco_centavos
+        timestamptz vigente_desde
+    }
+    VISIT {
+        uuid id PK
+        uuid unidade_id FK
+        uuid tarifa_id FK
+        text operador_entrada_id FK
+        text operador_saida_id FK
+        varchar placa
+        timestamptz entrada_em
+        text status
+    }
+```
+
+No PostgreSQL, `UNIT`, `RATE` e `VISIT` representam as tabelas `unidades`, `tarifas` e `visitas`. A chave estrangeira composta da visita garante que sua tarifa pertença à mesma unidade; um índice único parcial impede duas visitas abertas para a mesma placa na unidade. Veja também o [diagrama detalhado](docs/diagrama-banco.md).
+
 ## Arquitetura
 
 O padrão adotado para código novo e refatorações do backend é MVC com três camadas. O fluxo de dependências é `Controller → Service → Repository`.
