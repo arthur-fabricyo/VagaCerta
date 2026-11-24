@@ -5,7 +5,7 @@ import { config } from "dotenv";
 import sharp from "sharp";
 
 config({ path: [".env.local", ".env"], quiet: true });
-const { BETTER_AUTH_URL, SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD, XAI_API_KEY } = process.env;
+const { BETTER_AUTH_URL, SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD, GROQ_API_KEY } = process.env;
 assert.ok(BETTER_AUTH_URL && SEED_ADMIN_EMAIL && SEED_ADMIN_PASSWORD,
   "Start the application with a dedicated test database and a seeded operator.");
 const origin = new URL(BETTER_AUTH_URL).origin;
@@ -58,7 +58,7 @@ test("photo endpoints require approval and round-trip validated image bytes", as
   await request(aiPath, { method: "POST", body: photoForm(png, "image/jpeg"), cookie, status: 400 });
   await request(aiPath, { method: "POST", body: photoForm(png, "image/png"), cookie, from: "https://other.example", status: 403 });
 
-  await context.test("a missing provider key leaves manual entry available", { skip: Boolean(XAI_API_KEY?.trim()) }, async () => {
+  await context.test("a missing provider key leaves manual entry available", { skip: Boolean(GROQ_API_KEY?.trim()) }, async () => {
     const response = await request(aiPath, { method: "POST", body: photoForm(png, "image/png"), cookie, status: 503 });
     assert.match((await response.json()).error, /Digite a placa/);
   });

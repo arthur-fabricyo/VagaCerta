@@ -1,5 +1,7 @@
 "use client";
 
+import { UserCheck, UsersRound } from "lucide-react";
+import { EmptyState } from "@/app/_components/empty-state";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { UsuarioResumo } from "@/lib/usuarios";
@@ -43,13 +45,14 @@ export function ListaUsuarios({ pendentes, aprovados }: { pendentes: UsuarioResu
   }
 
   return (
-    <div className="mt-7 space-y-5" aria-busy={alterando}>
+    <div className="space-y-6" aria-busy={alterando}>
       {erro && <p role="alert" className="text-sm text-rose-700">{erro}</p>}
       <p role="status" className="text-sm text-emerald-800 empty:hidden">{mensagem}</p>
       <section className="painel" aria-labelledby="pendentes">
         <h2 id="pendentes" className="text-xl font-semibold">Cadastros pendentes</h2>
         {pendentes.length === 0 ? (
-          <p className="mt-3 text-slate-600">Nenhum cadastro aguardando aprovação.</p>
+          <div className="mt-4"><EmptyState compact icon={<UserCheck />} title="Tudo em dia"
+            description="Nenhum cadastro aguardando aprovação." /></div>
         ) : (
           <>
             <p className="mt-2 text-sm text-slate-600">Recusar remove o cadastro pendente.</p>
@@ -74,14 +77,17 @@ export function ListaUsuarios({ pendentes, aprovados }: { pendentes: UsuarioResu
       </section>
       <section className="painel" aria-labelledby="aprovados">
         <h2 id="aprovados" className="text-xl font-semibold">Operadores aprovados</h2>
-        <ul className="mt-3 divide-y divide-slate-200">
+        {aprovados.length === 0 ? (
+          <div className="mt-4"><EmptyState compact icon={<UsersRound />} title="Nenhum operador aprovado"
+            description="Os operadores aprovados aparecerão aqui." /></div>
+        ) : <ul className="mt-3 divide-y divide-slate-200">
           {aprovados.map((usuario) => (
             <li key={usuario.id} className="break-words py-3">
               <p className="font-medium">{usuario.name}</p>
               <p className="text-sm text-slate-600">{usuario.email}</p>
             </li>
           ))}
-        </ul>
+        </ul>}
       </section>
     </div>
   );

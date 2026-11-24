@@ -16,7 +16,7 @@ O índice põe primeiro as igualdades de unidade e placa e depois o horário, us
 
 ## IA e demonstração
 
-O servidor valida a imagem e envia a foto ao Grok. O operador confere ou corrige a sugestão e pode registrar a entrada manualmente em caso de imagem ilegível, erro ou limite do provedor. A demonstração deve usar uma foto de placa fictícia e mostrar a própria imagem, a sugestão e a confirmação, com as credenciais protegidas no servidor.
+O servidor valida a imagem e envia a foto ao IA. O operador confere ou corrige a sugestão e pode registrar a entrada manualmente em caso de imagem ilegível, erro ou limite do provedor. A demonstração deve usar uma foto de placa fictícia e mostrar a própria imagem, a sugestão e a confirmação, com as credenciais protegidas no servidor.
 
 ## Evidências da entrega
 
@@ -26,7 +26,7 @@ O servidor valida a imagem e envia a foto ao Grok. O operador confere ou corrige
 | E2 | Registrar uma placa fictícia, recarregar o pátio e conferir a mesma visita no PostgreSQL. |
 | E3 | Mostrar o diagrama e o resultado do `JOIN` em `consultas.sql`. |
 | E4 | Capturar os planos antes e depois do índice e explicar a leitura sequencial observada. |
-| E5 | Capturar uma sugestão real do Grok em uma foto fictícia e a revisão pelo operador. |
+| E5 | Capturar uma sugestão real do IA em uma foto fictícia e a revisão pelo operador. |
 | E6 | Abrir o link de produção em aba anônima e capturar a tela em largura de celular e um estado de erro ou carregamento. |
 
 Para a defesa de 8 a 10 minutos, distribuir entre os três integrantes o fluxo principal, a IA e as consultas com o deploy. Registrar o link e as capturas depois da validação em produção. [Edital](../kb/EDITAL-PROJETO-INTEGRADOR.md)

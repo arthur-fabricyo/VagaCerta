@@ -23,7 +23,7 @@ export function POST(request: Request) {
 
     const result = await readPlate(photo, request.signal);
     if (result.kind === "limit") {
-      return Response.json({ error: "O limite de leitura do Grok foi atingido. Digite a placa para continuar." }, { status: 429 });
+      return Response.json({ error: "O limite de leitura do IA foi atingido. Digite a placa para continuar." }, { status: 429 });
     }
     if (result.kind === "unavailable") {
       return Response.json({ error: "A leitura da foto está indisponível. Digite a placa para continuar." }, { status: 503 });

@@ -1,8 +1,12 @@
 "use client";
 
+import { CircleDollarSign } from "lucide-react";
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
+import { formatPlateInput } from "../../../lib/input-format";
 import { placaSchema } from "../../../lib/placa";
+import { EmptyState } from "../empty-state";
+import { PlateInput } from "../plate-input";
 import { PlatePhoto, type PlatePhotoValue } from "../plate-photo";
 import { formatPrice, messageFor, send, type Unit, type Visit } from "./api";
 
@@ -18,7 +22,12 @@ async function encodePhoto(file: File) {
   return { base64: dataUrl.slice(dataUrl.indexOf(",") + 1), mimeType: file.type };
 }
 
-export function EntryForm({ unit, onOpenSettings }: { unit: Unit; onOpenSettings: () => void }) {
+export function EntryForm({ unit, onOpenSettings, onRegistered, showEmptyState = false }: {
+  unit: Unit;
+  onOpenSettings: () => void;
+  onRegistered?: () => void;
+  showEmptyState?: boolean;
+}) {
   const [plate, setPlate] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [photo, setPhoto] = useState<PlatePhotoValue>(emptyPhoto);
@@ -28,7 +37,7 @@ export function EntryForm({ unit, onOpenSettings }: { unit: Unit; onOpenSettings
   const [result, setResult] = useState<{ visit: Visit; duplicate: boolean } | null>(null);
 
   function updatePlate(value: string) {
-    setPlate(value.toUpperCase());
+    setPlate(formatPlateInput(value));
     setConfirmed(false);
   }
 
@@ -55,6 +64,7 @@ export function EntryForm({ unit, onOpenSettings }: { unit: Unit; onOpenSettings
         photo: photo.photo ? await encodePhoto(photo.photo) : undefined,
       });
       setResult(response);
+      onRegistered?.();
       if (!response.duplicate) {
         form.reset();
         updatePlate("");
@@ -72,7 +82,12 @@ export function EntryForm({ unit, onOpenSettings }: { unit: Unit; onOpenSettings
     <section className="painel space-y-4" aria-labelledby="entry-heading">
       <h2 id="entry-heading" className="text-xl font-semibold">Registrar reserva</h2>
       {!unit.activeRate ? (
-        <>
+        showEmptyState ? (
+          <EmptyState compact icon={<CircleDollarSign />} title="Cadastre uma tarifa"
+            description="Esta unidade precisa de uma tarifa vigente para registrar reservas.">
+            <button className="botao botao-primario" type="button" onClick={onOpenSettings}>Cadastrar tarifa</button>
+          </EmptyState>
+        ) : <>
           <p className="text-slate-600">Esta unidade precisa de uma tarifa vigente para registrar reservas.</p>
           <button className="botao" type="button" onClick={onOpenSettings}>Cadastrar tarifa</button>
         </>
@@ -89,13 +104,12 @@ export function EntryForm({ unit, onOpenSettings }: { unit: Unit; onOpenSettings
               <Link className="link" href={`/visits/${result.visit.id}`}>Abrir visita</Link>
             </div>
           )}
-          <form onSubmit={register} className="space-y-4" aria-busy={saving}>
+          <form autoComplete="off" onSubmit={register} className="space-y-4" aria-busy={saving}>
             <PlatePhoto key={photoVersion} onChange={setPhoto} onSuggestion={updatePlate} disabled={saving} />
             <fieldset className="grid gap-4" disabled={saving}>
               <label className="campo max-w-xs">
                 Placa
-                <input autoComplete="off" autoCapitalize="characters" maxLength={16} required
-                  value={plate} onChange={(event) => updatePlate(event.target.value)} />
+                <PlateInput required value={plate} onValueChange={updatePlate} />
               </label>
               <label className="flex min-h-11 items-center gap-3 text-sm">
                 <input type="checkbox" className="size-5 accent-emerald-700 focus-visible:outline-emerald-600"

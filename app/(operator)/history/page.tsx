@@ -1,4 +1,7 @@
+import { Building2, CalendarSearch, SearchX } from "lucide-react";
 import Link from "next/link";
+import { PlateInput } from "@/app/_components/plate-input";
+import { EmptyState } from "@/app/_components/empty-state";
 import { exigirOperador } from "@/lib/acesso";
 import { getPlateHistory, listHistoryUnits } from "@/lib/history/history-service";
 
@@ -24,20 +27,21 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
       : result?.status === "unavailable" ? "Não foi possível consultar o histórico. Tente novamente." : null;
 
   return (
-    <main className="mx-auto grid w-full max-w-4xl gap-6 px-5 py-8 sm:px-10">
+    <main className="operator-page">
       <header>
-        <Link className="link" href="/">Voltar à operação</Link>
-        <h1 className="mt-4 text-3xl font-semibold">Histórico por placa</h1>
+        <h1 className="operator-page-title">Histórico por placa</h1>
+        <p className="mt-3"><Link className="link" href="/">Voltar à operação</Link></p>
       </header>
       {unit ? (
-        <form className="painel grid gap-4 sm:grid-cols-2" action="/history">
+        <form key={unit.id} autoComplete="off" className="painel grid gap-4 sm:grid-cols-2" action="/history">
           <label className="campo">Unidade
             <select name="unitId" defaultValue={unit.id} required>
               {units.map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)}
             </select>
           </label>
           <label className="campo">Placa completa
-            <input name="plate" defaultValue={typeof params.plate === "string" ? params.plate : ""} maxLength={24} required />
+            <PlateInput key={typeof params.plate === "string" ? params.plate : ""} name="plate"
+              defaultValue={typeof params.plate === "string" ? params.plate : ""} required />
           </label>
           <label className="campo">Data inicial
             <input type="date" name="start" defaultValue={typeof params.start === "string" ? params.start : ""} />
@@ -47,16 +51,25 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
           </label>
           <button className="botao botao-primario justify-self-start" type="submit">Consultar</button>
         </form>
-      ) : <p className="painel">Cadastre uma unidade para consultar o histórico.</p>}
+      ) : <EmptyState icon={<Building2 />} title="Cadastre uma unidade"
+        description="Uma unidade é necessária para consultar o histórico de veículos.">
+        <Link className="botao botao-primario" href="/settings/units/new">Cadastrar unidade</Link>
+      </EmptyState>}
       {error && <p role="alert" className="painel text-red-200">{error}</p>}
+      {unit && !history && !error && !params.plate && (
+        <EmptyState icon={<CalendarSearch />} title="Consulte o histórico por placa"
+          description="Informe a placa e, se quiser, escolha um período para encontrar as visitas encerradas." />
+      )}
       {history && unit && (
         <section className="painel grid gap-3" aria-labelledby="results-heading">
           <h2 id="results-heading" className="text-xl font-semibold">{history.plate} · {unit.nome}</h2>
           <p>{history.start || history.end
             ? `${history.start ? `Desde ${formatDate(history.start)}` : "Desde o início"}${history.end ? ` até ${formatDate(history.end)}` : ""}`
             : "Todo o histórico da unidade"}</p>
-          <p>{history.total === 0 ? "Nenhuma visita encerrada no período."
-            : history.total === 1 ? "1 visita encerrada" : `${history.total} visitas encerradas`}</p>
+          {history.total === 0 ? (
+            <EmptyState compact icon={<SearchX />} title="Nenhuma visita encontrada"
+              description="Não há visitas encerradas para essa placa no período selecionado. Confira os filtros e tente novamente." />
+          ) : <p>{history.total === 1 ? "1 visita encerrada" : `${history.total} visitas encerradas`}</p>}
           {history.lastEntryAt && <p>Última reserva em {new Intl.DateTimeFormat("pt-BR", {
             timeZone: unit.fuso, dateStyle: "short", timeStyle: "short",
           }).format(history.lastEntryAt)}</p>}

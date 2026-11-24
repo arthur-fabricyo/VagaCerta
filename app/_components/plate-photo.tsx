@@ -138,7 +138,7 @@ export function PlatePhoto({ onChange, onSuggestion, disabled }: PlatePhotoProps
   return (
     <fieldset className="space-y-3 rounded-lg border border-slate-200 p-4" disabled={disabled}>
       <legend className="px-1 text-sm font-medium">Foto da reserva (opcional)</legend>
-      <p className="text-sm text-slate-600">O Grok pode errar. Confira a placa antes de registrar.</p>
+      <p className="text-sm text-slate-600">O IA pode errar. Confira a placa antes de registrar.</p>
       <div className="flex flex-wrap gap-2">
         <label className="botao cursor-pointer focus-within:ring-2 focus-within:ring-emerald-600">
           Tirar foto
@@ -156,12 +156,12 @@ export function PlatePhoto({ onChange, onSuggestion, disabled }: PlatePhotoProps
       )}
       {value.photo && (
         <div className="flex flex-wrap gap-2">
-          <button className="botao" type="button" onClick={requestSuggestion} disabled={busy !== null}>Ler placa com Grok</button>
+          <button className="botao" type="button" onClick={requestSuggestion} disabled={busy !== null}>Ler placa com IA</button>
           <button className="botao" type="button" onClick={clearPhoto}>Remover foto</button>
         </div>
       )}
       <p aria-live="polite" className={busy || notice ? "text-sm text-slate-700" : "sr-only"}>
-        {busy === "prepare" ? "Preparando foto…" : busy === "read" ? "Lendo placa com Grok…" : notice}
+        {busy === "prepare" ? "Preparando foto…" : busy === "read" ? "Lendo placa com IA…" : notice}
       </p>
       {suggestedPlate && (
         <button className="botao" type="button" disabled={busy !== null} onClick={() => onSuggestion(suggestedPlate)}>
