@@ -1,5 +1,7 @@
 # Relatório técnico do VagaCerta
 
+**Responsável informado:** Arthur Fabricyo. **Site:** [vaga-certa-six.vercel.app/entrar](https://vaga-certa-six.vercel.app/entrar). A página de entrada respondeu HTTP 200 em 25/11/2026; isso não comprova o fluxo autenticado. A composição individual deve ser esclarecida com os docentes, pois o edital prevê um trio.
+
 O VagaCerta atende operadores de estacionamento que precisam registrar visitas, calcular cobrança pelo tempo e consultar os padrões de chegada de uma placa. O operador confirma a sugestão da IA antes de gravar a entrada. A saída representa uma quitação simulada.
 
 ## Arquitetura e dados

@@ -2,6 +2,11 @@
 
 These conventions apply to new code and to code being refactored throughout the repository.
 
+## Branches
+
+- Use `develop` for development and integration.
+- Use `prod` for production releases.
+
 ## Language
 
 - Write code and technical identifiers in English. This includes entities, database models and fields, backend route paths, request and response fields, filenames, classes, methods, variables, tests, and code comments.

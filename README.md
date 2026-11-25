@@ -2,6 +2,8 @@
 
 Sistema web de operação de estacionamento para o Projeto Integrador de Desenvolvimento Web, IA e Banco de Dados.
 
+**Integrante informado:** Arthur Fabricyo. **Produção:** [VagaCerta](https://vaga-certa-six.vercel.app/entrar). O edital prevê um trio; a composição individual deve ser confirmada com os docentes.
+
 Operadores aprovados registram reservas, localizam veículos no pátio, encerram visitas com cobrança simulada e consultam o histórico por placa. A leitura por foto usa IA pela Groq para sugerir uma placa que o operador pode corrigir antes de confirmar a reserva.
 
 ## Fluxo de operação
